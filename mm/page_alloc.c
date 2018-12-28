@@ -4784,7 +4784,7 @@ void page_frag_free(void *addr)
 		unsigned int order = compound_order(page);
 
 		if (order == 0)		/* Via pcp? */
-			free_hot_cold_page(page, false);
+			free_unref_page(page);
 		else
 			__free_pages_ok(page, order);
 	}

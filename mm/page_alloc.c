@@ -4150,6 +4150,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 	unsigned int cpuset_mems_cookie;
 	unsigned int zonelist_iter_cookie;
 	int reserve_flags;
+        pg_data_t *pgdat = ac->preferred_zoneref->zone->zone_pgdat;
+        bool woke_kswapd = false;
 	bool woke_kshrinkd = false;
 	unsigned long pages_reclaimed = 0;
 	int retry_loop_count = 0;
@@ -4191,12 +4193,17 @@ restart:
 	if (!ac->preferred_zoneref->zone)
 		goto nopage;
 
-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+	if (gfp_mask & __GFP_KSWAPD_RECLAIM) {
+		if (!woke_kswapd) {
+ 			atomic_inc(&pgdat->kswapd_waiters);
+ 			woke_kswapd = true;
+ 		}
 		if (!woke_kshrinkd) {
 			atomic_long_inc(&kshrinkd_waiters);
 			woke_kshrinkd = true;
 		}
 		wake_all_kswapds(order, ac);
+	}
 
 	/*
 	 * The adjusted alloc_flags might result in immediate success, so try
@@ -4420,8 +4427,6 @@ nopage:
 		goto retry;
 	}
 fail:
-	warn_alloc(gfp_mask, ac->nodemask,
-			"page allocation failure: order:%u", order);
 got_pg:
 	task_cputime(current, &utime, &stime_e);
 	stime_d = stime_e - stime_s;
@@ -4446,8 +4451,13 @@ got_pg:
 			a_anon << (PAGE_SHIFT-10), in_anon << (PAGE_SHIFT-10),
 			a_file << (PAGE_SHIFT-10), in_file << (PAGE_SHIFT-10));
 	}
+	if (woke_kswapd)
+ 		atomic_dec(&pgdat->kswapd_waiters);
 	if (woke_kshrinkd)
 		atomic_long_dec(&kshrinkd_waiters);
+	if (!page)
+		warn_alloc(gfp_mask, ac->nodemask,
+				"page allocation failure: order:%u", order);
 	return page;
 }
 
@@ -6458,6 +6468,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat)
 	pgdat_page_ext_init(pgdat);
 	spin_lock_init(&pgdat->lru_lock);
 	lruvec_init(node_lruvec(pgdat));
+	pgdat->kswapd_waiters = (atomic_t)ATOMIC_INIT(0);
 
 	pgdat->per_cpu_nodestats = &boot_nodestats;
 

@@ -10352,7 +10352,12 @@ static void ufshcd_async_scan(void *data, async_cookie_t cookie)
 	 * detection.
 	 */
 	ufshcd_hold_all(hba);
-	ufshcd_probe_hba(hba);
+	ret = ufshcd_probe_hba(hba);
+	while (ret && retry) {
+		pr_err("%s failed. Err = %d. Retry %d\n", __func__, ret, retry);
+		ret = ufshcd_host_reset_and_restore(hba);
+		retry--;
+	}
 	ufshcd_release_all(hba);
 
 	ufshcd_extcon_register(hba);

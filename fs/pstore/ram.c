@@ -77,7 +77,7 @@ MODULE_PARM_DESC(mem_type,
 		"set to 1 to try to use unbuffered memory (default 0)");
 
 static int dump_oops = 1;
-module_param(dump_oops, int, 0600);
+module_param(dump_oops, int, 0400);
 MODULE_PARM_DESC(dump_oops,
 		"set to 1 to dump oopses, 0 to only dump panics (default 1)");
 

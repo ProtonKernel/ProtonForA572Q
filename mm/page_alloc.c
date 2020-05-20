@@ -76,6 +76,7 @@
 #include <asm/div64.h>
 #include "internal.h"
 
+atomic_long_t kswapd_waiters = ATOMIC_LONG_INIT(0);
 atomic_long_t kshrinkd_waiters = ATOMIC_LONG_INIT(0);
 
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
@@ -4150,7 +4151,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 	unsigned int cpuset_mems_cookie;
 	unsigned int zonelist_iter_cookie;
 	int reserve_flags;
-        pg_data_t *pgdat = ac->preferred_zoneref->zone->zone_pgdat;
         bool woke_kswapd = false;
 	bool woke_kshrinkd = false;
 	unsigned long pages_reclaimed = 0;
@@ -4195,7 +4195,7 @@ restart:
 
 	if (gfp_mask & __GFP_KSWAPD_RECLAIM) {
 		if (!woke_kswapd) {
- 			atomic_inc(&pgdat->kswapd_waiters);
+			atomic_long_inc(&kswapd_waiters);
  			woke_kswapd = true;
  		}
 		if (!woke_kshrinkd) {
@@ -4452,7 +4452,7 @@ got_pg:
 			a_file << (PAGE_SHIFT-10), in_file << (PAGE_SHIFT-10));
 	}
 	if (woke_kswapd)
- 		atomic_dec(&pgdat->kswapd_waiters);
+		atomic_long_dec(&kswapd_waiters);
 	if (woke_kshrinkd)
 		atomic_long_dec(&kshrinkd_waiters);
 	if (!page)
@@ -6468,7 +6468,6 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat)
 	pgdat_page_ext_init(pgdat);
 	spin_lock_init(&pgdat->lru_lock);
 	lruvec_init(node_lruvec(pgdat));
-	pgdat->kswapd_waiters = (atomic_t)ATOMIC_INIT(0);
 
 	pgdat->per_cpu_nodestats = &boot_nodestats;
 

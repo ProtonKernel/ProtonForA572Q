@@ -2730,6 +2730,7 @@ static void ufshcd_gate_work(struct work_struct *work)
 
 	hba->clk_gating.gate_wk_in_process = true;
 	spin_lock_irqsave(hba->host->host_lock, flags);
+
 	if (hba->clk_gating.state == CLKS_OFF)
 		goto rel_lock;
 	/*

@@ -577,7 +577,7 @@ static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
 		ClearPageActive(page);
 		ClearPageReferenced(page);
-		add_page_to_lru_list(page, lruvec, lru);
+		add_page_to_lru_list(page, lruvec);
 
 		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
 		update_page_reclaim_stat(lruvec, file, 0);

@@ -1247,6 +1247,15 @@ struct ufs_hba {
 #if defined(CONFIG_UFS_DATA_LOG)
 	atomic_t	log_count;
 #endif
+
+	struct {
+		struct pm_qos_request req;
+		struct work_struct get_work;
+		struct work_struct put_work;
+		struct mutex lock;
+		atomic_t count;
+		bool active;
+	} pm_qos;
 };
 
 static inline void ufshcd_mark_shutdown_ongoing(struct ufs_hba *hba)

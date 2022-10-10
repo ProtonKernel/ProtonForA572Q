@@ -20,7 +20,6 @@
 #include <linux/uaccess.h>
 #include <linux/mm_inline.h>
 #include <linux/freezer.h>
-#include <linux/ctype.h>
 #include <linux/io_record.h>
 
 #include <asm/elf.h>
@@ -2038,14 +2037,11 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 				size_t count, loff_t *ppos)
 {
 	struct task_struct *task;
-	char buffer[200];
+	char buffer[PROC_NUMBUF];
 	struct mm_struct *mm;
 	struct vm_area_struct *vma;
 	enum reclaim_type type;
 	char *type_buf;
-	struct mm_walk reclaim_walk = {};
-	unsigned long start = 0;
-	unsigned long end = 0;
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 	LIST_HEAD(list);
 #endif
@@ -2064,8 +2060,6 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 		type = RECLAIM_ANON;
 	else if (!strcmp(type_buf, "all"))
 		type = RECLAIM_ALL;
-	else if (isdigit(*type_buf))
-		type = RECLAIM_RANGE;
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 	else if (!strcmp(type_buf, "writeback"))
 		type = RECLAIM_WRITEBACK;
@@ -2073,38 +2067,7 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 		type = PREFETCH_PROCESS;
 #endif
 	else
-		goto out_err;
-
-	if (type == RECLAIM_RANGE) {
-		char *token;
-		unsigned long long len, len_in, tmp;
-
-		token = strsep(&type_buf, " ");
-		if (!token)
-			goto out_err;
-		tmp = memparse(token, &token);
-		if (tmp & ~PAGE_MASK || tmp > ULONG_MAX)
-			goto out_err;
-		start = tmp;
-
-		token = strsep(&type_buf, " ");
-		if (!token)
-			goto out_err;
-		len_in = memparse(token, &token);
-		len = (len_in + ~PAGE_MASK) & PAGE_MASK;
-		if (len > ULONG_MAX)
-			goto out_err;
-		/*
-		 * Check to see whether len was rounded up from small -ve
-		 * to zero.
-		 */
-		if (len_in && !len)
-			goto out_err;
-
-		end = start + len;
-		if (end < start)
-			goto out_err;
-	}
+		return -EINVAL;
 
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 	/* we only allow single MADV_WRITEBACK at a time */
@@ -2124,35 +2087,21 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 		return -ESRCH;
 
 	mm = get_task_mm(task);
-	if (!mm)
-		goto out;
+	if (mm) {
+		struct mm_walk reclaim_walk = {
+			.pmd_entry = reclaim_pte_range,
+			.mm = mm,
+		};
 
-	reclaim_walk.mm = mm;
-	reclaim_walk.pmd_entry = reclaim_pte_range;
-
-	down_read(&mm->mmap_sem);
-	if (type == RECLAIM_RANGE) {
-		vma = find_vma(mm, start);
-		while (vma) {
-			if (vma->vm_start > end)
-				break;
-			if (is_vm_hugetlb_page(vma))
-				continue;
-
-			reclaim_walk.private = vma;
-			walk_page_range(max(vma->vm_start, start),
-					min(vma->vm_end, end),
-					&reclaim_walk);
-			vma = vma->vm_next;
-		}
-	} else {
+		down_read(&mm->mmap_sem);
 		for (vma = mm->mmap; vma; vma = vma->vm_next) {
+			reclaim_walk.private = vma;
+
 			if (is_vm_hugetlb_page(vma))
 				continue;
 
 			if (type == RECLAIM_ANON && vma->vm_file)
 				continue;
-
 			if (type == RECLAIM_FILE && !vma->vm_file)
 				continue;
 
@@ -2167,16 +2116,13 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 				reclaim_walk.pmd_entry = prefetch_pte_range;
 			}
 #endif
-			reclaim_walk.private = vma;
 			walk_page_range(vma->vm_start, vma->vm_end,
-				&reclaim_walk);
+					&reclaim_walk);
 		}
+		flush_tlb_mm(mm);
+		up_read(&mm->mmap_sem);
+		mmput(mm);
 	}
-
-	flush_tlb_mm(mm);
-	up_read(&mm->mmap_sem);
-	mmput(mm);
-out:
 	put_task_struct(task);
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 	if (type == RECLAIM_WRITEBACK) {
@@ -2189,9 +2135,6 @@ out:
 	}
 #endif
 	return count;
-
-out_err:
-	return -EINVAL;
 }
 
 const struct file_operations proc_reclaim_operations = {

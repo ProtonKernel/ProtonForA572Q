@@ -2103,7 +2103,6 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 	LIST_HEAD(list);
 #endif
-	int err = 0;
 
 	memset(buffer, 0, sizeof(buffer));
 	if (count > sizeof(buffer) - 1)
@@ -2200,10 +2199,9 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 				continue;
 
 			rp.vma = vma;
-			if (walk_page_range(max(vma->vm_start, start),
+			walk_page_range(max(vma->vm_start, start),
 					min(vma->vm_end, end),
-					&reclaim_walk))
-				break;
+					&reclaim_walk);
 			vma = vma->vm_next;
 		}
 	} else {
@@ -2229,12 +2227,8 @@ static ssize_t reclaim_write(struct file *file, const char __user *buf,
 			}
 #endif
 			rp.vma = vma;
-			err = walk_page_range(vma->vm_start, vma->vm_end,
+			walk_page_range(vma->vm_start, vma->vm_end,
 				&reclaim_walk);
-			if (err) {
-				count = err;
-				break;
-			}
 		}
 	}
 

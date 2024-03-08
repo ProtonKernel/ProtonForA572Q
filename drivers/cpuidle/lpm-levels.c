@@ -1725,6 +1725,8 @@ static int lpm_suspend_prepare(void)
 
 #ifdef CONFIG_SEC_PM
 	regulator_showall_enabled();
+#endif
+#ifdef CONFIG_SEC_PM_DEBUG
 	sec_clock_debug_print_enabled();
 #endif
 
@@ -1745,7 +1747,7 @@ static void lpm_suspend_wake(void)
 	suspend_in_progress = false;
 	lpm_stats_suspend_exit();
 
-#ifdef CONFIG_SEC_PM
+#ifdef CONFIG_SEC_PM_DEBUG
 	sec_debug_print_sleep_time();
 #endif
 }

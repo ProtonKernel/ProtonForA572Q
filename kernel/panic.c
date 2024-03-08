@@ -215,8 +215,10 @@ void panic(const char *fmt, ...)
 
 	trace_kernel_panic(0);
 
+#ifdef CONFIG_SEC_DEBUG
 	/*To prevent watchdog reset during panic handling. */
 	emerg_pet_watchdog();
+#endif
 
 	/*
 	 * Disable local interrupts. This will prevent panic_smp_self_stop
@@ -248,9 +250,11 @@ void panic(const char *fmt, ...)
 	if (old_cpu != PANIC_CPU_INVALID && old_cpu != this_cpu)
 		panic_smp_self_stop();
 
+#ifdef CONFIG_SEC_DEBUG
 	sec_debug_sched_msg("!!panic!!");
 
 	sec_debug_sched_msg("!!panic!!");
+#endif
 
 	console_verbose();
 	bust_spinlocks(1);

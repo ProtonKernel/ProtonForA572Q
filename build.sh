@@ -50,7 +50,7 @@ make -j$(nproc --all) O=out \
                       LD=ld.lld \
                       CONFIG_NO_ERROR_ON_MISMATCH=y
 
-zimage=out/arch/arm64/boot/Image.gz
+zimage=out/arch/arm64/boot/Image.gz-dtb
 if ! [ -a $zimage ];
 then
 echo  " Failed To Compile Kernel"
@@ -61,7 +61,7 @@ echo -e "\nKernel compiled successfully! Zipping up...\n"
 
 rm -rf AnyKernel3
 git clone --depth=1 https://github.com/koko-07870/AnyKernel3.git -b master AnyKernel3
-cp out/arch/arm64/boot/Image.gz AnyKernel3
+cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3
 cd AnyKernel3
 zip -r9 "../$ZIPNAME" * -x .git
 cd ..

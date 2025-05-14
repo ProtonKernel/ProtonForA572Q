@@ -130,3 +130,14 @@ kernel/configs/android-*.cfg
 Android.bp
 
 out
+/out/
+*.tar
+/build/tmp
+*__pycache__*
+*.br
+/build/*.zip
+/build/*.img
+!/build/vboot/vendor/firmware/*.bin
+log.txt
+*.pyc
+build/mkbootimg/gki/__pycache__/*.pyc

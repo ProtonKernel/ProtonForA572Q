@@ -1726,21 +1726,16 @@ static int ncm_bind(struct usb_configuration *c, struct usb_function *f)
 	 * with list_for_each_entry, so we assume no race condition
 	 * with regard to ncm_opts->bound access
 	 */
-	if (!ncm_opts->bound) {
-		mutex_lock(&ncm_opts->lock);
+	mutex_lock(&ncm_opts->lock);
+	gether_set_gadget(ncm_opts->net, cdev->gadget);
+	if (!ncm_opts->bound)
+		status = gether_register_netdev(ncm_opts->net);
+	mutex_unlock(&ncm_opts->lock);
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 		ncm_opts->net = gether_setup_name_default("ncm");
 #else
 		ncm_opts->net = gether_setup_default();
 #endif
-		if (IS_ERR(ncm_opts->net)) {
-			status = PTR_ERR(ncm_opts->net);
-			mutex_unlock(&ncm_opts->lock);
-			goto error;
-		}
-		gether_set_gadget(ncm_opts->net, cdev->gadget);
-		status = gether_register_netdev(ncm_opts->net);
-	mutex_unlock(&ncm_opts->lock);
 
 	if (status)
 		goto fail;

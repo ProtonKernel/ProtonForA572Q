@@ -1636,8 +1636,8 @@
 
 					qcom,msm_cdsp_rm {
 						compatible = "qcom,msm-cdsp-rm";
-						qcom,qos-latency-us = <0x2c>;
-						qcom,qos-maxhold-ms = <0x14>;
+						qcom,qos-latency-us = <67>;
+						qcom,qos-maxhold-ms = <20>;
 						qcom,compute-cx-limit-en;
 						qcom,compute-priority-mode = <0x2>;
 						phandle = <0x328>;

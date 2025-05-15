@@ -12,7 +12,7 @@ menuconfig SEC_DEBUG
 
 config SEC_LOG_BUF
 	bool "Samsung non-cached kernel printk"
-	default y
+	default n
 	help
 	  Samsung non-cached kernel printk
 	  This ensures that printk is never stale

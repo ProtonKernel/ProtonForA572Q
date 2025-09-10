@@ -1613,7 +1613,7 @@ static void sde_rotator_commit_handler(struct kthread_work *work)
 		entry->item.output.format,
 		entry->item.output.width, entry->item.output.height,
 		entry->item.dst_rect.x, entry->item.dst_rect.y,
-		entry->item.dst_rect.h);
+		entry->item.dst_rect.w, entry->item.dst_rect.h);
 
 	ATRACE_INT("sde_smmu_ctrl", 0);
 	ret = sde_smmu_ctrl(1);

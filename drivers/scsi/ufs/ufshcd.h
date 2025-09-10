@@ -1252,12 +1252,12 @@ struct ufs_hba {
 		struct pm_qos_request req;
 		struct work_struct get_work;
 		struct work_struct put_work;
-		struct mutex lock;
 		atomic_t count;
 		bool active;
-	}
-}
+	};
+};
 
+struct ufs_hba; // forward declaration si no está
 static inline void ufshcd_mark_shutdown_ongoing(struct ufs_hba *hba)
 {
 	set_bit(0, &hba->shutdown_in_prog);

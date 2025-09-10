@@ -392,10 +392,12 @@ int sde_smmu_map_dma_buf(struct dma_buf *dma_buf,
 	*iova = table->sgl->dma_address;
 	*size = table->sgl->dma_length;
 
-#if defined(CONFIG_DISPLAY_SAMSUNG) && defined(CONFIG_SEC_DEBUG)
-	ss_smmu_debug_map(SMMU_NRT_ROTATOR_DEBUG, domain, NULL, table);
-#elif defined(CONFIG_DISPLAY_SAMSUNG_LEGO) && defined(CONFIG_SEC_DEBUG)
-	ss_smmu_debug_map(SMMU_NRT_ROTATOR_DEBUG, table);
+#if defined(CONFIG_DISPLAY_SAMSUNG)
+	if (sec_debug_is_enabled())
+		ss_smmu_debug_map(SMMU_NRT_ROTATOR_DEBUG, domain, NULL, table);
+#elif defined(CONFIG_DISPLAY_SAMSUNG_LEGO)
+	if (sec_debug_is_enabled())
+		ss_smmu_debug_map(SMMU_NRT_ROTATOR_DEBUG, table);
 #endif
 	return 0;
 }
@@ -410,12 +412,12 @@ void sde_smmu_unmap_dma_buf(struct sg_table *table, int domain,
 		return;
 	}
 
-#ifdef CONFIG_SEC_DEBUG
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	ss_smmu_debug_unmap(SMMU_NRT_ROTATOR_DEBUG, table);
+	if (sec_debug_is_enabled())
+		ss_smmu_debug_unmap(SMMU_NRT_ROTATOR_DEBUG, table);
 #elif defined(CONFIG_DISPLAY_SAMSUNG_LEGO)
-	ss_smmu_debug_unmap(SMMU_NRT_ROTATOR_DEBUG, table);
-#endif
+	if (sec_debug_is_enabled())
+		ss_smmu_debug_unmap(SMMU_NRT_ROTATOR_DEBUG, table);
 #endif
 
 	dma_unmap_sg(sde_smmu->dev, table->sgl, table->nents,

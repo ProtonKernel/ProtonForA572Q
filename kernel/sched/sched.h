@@ -1983,6 +1983,7 @@ static inline void sched_update_tick_dependency(struct rq *rq)
 static inline void sched_update_tick_dependency(struct rq *rq) { }
 #endif
 
+/*
 static inline void add_nr_running(struct rq *rq, unsigned count)
 {
 	unsigned prev_nr = rq->nr_running;
@@ -1999,6 +2000,7 @@ static inline void add_nr_running(struct rq *rq, unsigned count)
 
 	sched_update_tick_dependency(rq);
 }
+*/
 
 static inline void sub_nr_running(struct rq *rq, unsigned count)
 {

@@ -53,6 +53,8 @@ static void walt_fixup_nr_big_tasks(struct rq *rq, struct task_struct *p,
 					int delta, bool inc);
 #endif /* CONFIG_SCHED_WALT */
 
+unsigned int nr_running, h_nr_running, idle_h_nr_running;
+
 #if defined(CONFIG_SCHED_WALT) && defined(CONFIG_CFS_BANDWIDTH)
 
 static void walt_init_cfs_rq_stats(struct cfs_rq *cfs_rq);
@@ -70,6 +72,23 @@ static inline void
 walt_inc_cfs_rq_stats(struct cfs_rq *cfs_rq, struct task_struct *p) {}
 static inline void
 walt_dec_cfs_rq_stats(struct cfs_rq *cfs_rq, struct task_struct *p) {}
+
+static inline void add_nr_running(struct rq *rq, unsigned count)
+{
+        unsigned prev_nr = rq->nr_running;
+
+        sched_update_nr_prod(cpu_of(rq), count, true);
+        rq->nr_running = prev_nr + count;
+
+        if (prev_nr < 2 && rq->nr_running >= 2) {
+#ifdef CONFIG_SMP
+                if (!READ_ONCE(rq->rd->overload))
+                        WRITE_ONCE(rq->rd->overload, 1);
+#endif
+        }
+
+        sched_update_tick_dependency(rq);
+}
 
 #define walt_inc_throttled_cfs_rq_stats(...)
 #define walt_dec_throttled_cfs_rq_stats(...)
@@ -12745,8 +12764,6 @@ static void rq_offline_fair(struct rq *rq)
 	/* Ensure any throttled groups are reachable by pick_next_task */
 	unthrottle_offline_cfs_rqs(rq);
 }
-
-#endif /* CONFIG_SMP */
 
 /*
  * scheduler tick hitting a task of our scheduling class:

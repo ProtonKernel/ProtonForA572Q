@@ -1255,8 +1255,8 @@ struct ufs_hba {
 		struct mutex lock;
 		atomic_t count;
 		bool active;
-	} pm_qos;
-};
+	}
+}
 
 static inline void ufshcd_mark_shutdown_ongoing(struct ufs_hba *hba)
 {

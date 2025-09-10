@@ -2664,7 +2664,7 @@ next_test:
 		memset(&derived_key, 0, sizeof(derived_key));
 		hchacha20(derived_key, hchacha20_testvecs[i].nonce,
 			  hchacha20_testvecs[i].key, &simd_context);
-		cpu_to_le32_array(derived_key, ARRAY_SIZE(derived_key));
+		//cpu_to_le32_array(derived_key, ARRAY_SIZE(derived_key));
 		if (memcmp(derived_key, hchacha20_testvecs[i].output,
 			   CHACHA20_KEY_SIZE)) {
 			pr_err("hchacha20 self-test %zu: FAIL\n", i + 1);

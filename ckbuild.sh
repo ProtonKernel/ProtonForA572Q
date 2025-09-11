@@ -23,6 +23,9 @@ GCC64_REPO="https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64
 AK3_URL="https://github.com/ProtonKernel/AnyKernel3"
 AK3_BRANCH="a572q"
 
+# nothing to look out here
+export KCFLAGS="-Wno-error=implicit-function-declaration"
+
 # Custom toolchain directory
 if [[ -z "$CUST_DIR" ]]; then
     CUST_DIR="$WP/custom-toolchain"
@@ -77,8 +80,8 @@ OUT_DTBO="out/arch/arm64/boot/dts/qcom/atoll-ab-idp.dtb"
 
 ## Customizable vars
 
-# FloppyKernel version
-PROTON_VER="v1.0"
+# ProtonKernel version
+PROTON_VER="v1.Special"
 
 # Toggles
 USE_CCACHE=1
@@ -167,7 +170,7 @@ LOG_UPLOAD=1
 
 # Pick aosp, proton, rm69, lolz, slim, greenforce, zyc, rv, custom
 if [[ -z "$CLANG_TYPE" ]]; then
-    CLANG_TYPE="lolz"
+    CLANG_TYPE="rm69"
 else
     echo -e "\nINFO: Overriding default toolchain"
 fi

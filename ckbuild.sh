@@ -81,7 +81,7 @@ OUT_DTBO="out/arch/arm64/boot/dts/qcom/atoll-ab-idp.dtb"
 ## Customizable vars
 
 # ProtonKernel version
-PROTON_VER="v1.Special"
+PROTON_VER="v2.0"
 
 # Toggles
 USE_CCACHE=1
@@ -213,7 +213,7 @@ ZIP_PATH="$WP/ProtonPlus_$PROTON_VER-$CK_TYPE-$CODENAME-$DATE.zip"
 echo -e "\nINFO: Build info:
 - Device: $DEVICE ($CODENAME)
 - Addons: $CK_TYPE
-- ProtonPlus version: $FK_VER
+- ProtonPlus version: $PROTON_VER
 - Linux version: $LINUX_VER
 - Defconfig: $DEFCONFIG
 - Build date: $DATE
